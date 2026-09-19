@@ -1,0 +1,38 @@
+#cloud-config
+package_update: true
+packages:
+  - docker.io
+  - docker-compose-v2
+
+write_files:
+  - path: /opt/stalwart/docker-compose.yml
+    permissions: '0644'
+    content: |
+      services:
+        stalwart:
+          image: stalwartlabs/stalwart:v0.16
+          container_name: stalwart
+          restart: unless-stopped
+          environment:
+            - STALWART_RECOVERY_ADMIN=admin:CHANGE_ME_BEFORE_LAUNCH
+          ports:
+            - "443:443"
+            - "8080:8080"
+            - "25:25"
+            - "587:587"
+            - "465:465"
+            - "143:143"
+            - "993:993"
+            - "110:110"
+            - "995:995"
+            - "4190:4190"
+          volumes:
+            - stalwart-etc:/etc/stalwart
+            - stalwart-data:/var/lib/stalwart
+      volumes:
+        stalwart-etc:
+        stalwart-data:
+
+runcmd:
+  - systemctl enable --now docker
+  - cd /opt/stalwart && docker compose up -d
